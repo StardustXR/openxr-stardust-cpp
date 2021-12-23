@@ -1,1 +1,1 @@
-# openxr-stardust
+# Stardust OpenXR runtime library
