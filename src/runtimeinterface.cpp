@@ -1,11 +1,22 @@
 #include "../include/openxr/loader_interfaces.h"
+#include "functions.hpp"
+#include "include/openxr/openxr.h"
 #include <stdio.h>
+#include <string>
 
-namespace StardustXR{
-namespace OpenXR{
+namespace StardustXR {
+namespace OpenXR {
 
 XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoidFunction *function) {
+	*function = nullptr;
 
+	const std::string nameStr = std::string(name);
+	auto mapFunction = (instance != XR_NULL_HANDLE ? xrFunctions : xrFunctionsNoInstance).begin();
+	if(mapFunction != xrFunctions.end()) {
+		*function = mapFunction->second;
+		return XR_SUCCESS;
+	}
+	return XR_ERROR_FUNCTION_UNSUPPORTED;
 }
 
 }
