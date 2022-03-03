@@ -1,26 +1,9 @@
+#include "runtimeinterface.hpp"
 #include "../include/openxr/loader_interfaces.h"
-#include "functions.hpp"
+#include "instance.hpp"
 #include "include/openxr/openxr.h"
 #include <stdio.h>
 #include <string>
-
-namespace StardustXR {
-namespace OpenXR {
-
-XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoidFunction *function) {
-	*function = nullptr;
-
-	const std::string nameStr = std::string(name);
-	auto mapFunction = (instance != XR_NULL_HANDLE ? xrFunctions : xrFunctionsNoInstance).begin();
-	if(mapFunction != xrFunctions.end()) {
-		*function = mapFunction->second;
-		return XR_SUCCESS;
-	}
-	return XR_ERROR_FUNCTION_UNSUPPORTED;
-}
-
-}
-}
 
 XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo, XrNegotiateRuntimeRequest *runtimeRequest) {
 	if (loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
@@ -48,6 +31,6 @@ XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotia
 	runtimeRequest->runtimeInterfaceVersion = XR_CURRENT_LOADER_RUNTIME_VERSION;
 	runtimeRequest->runtimeApiVersion = XR_CURRENT_API_VERSION;
 
-	printf("Stardust OpenXR Runtime loaded!");
+	printf("Stardust OpenXR Runtime loaded!\n");
 	return XR_SUCCESS;
 };

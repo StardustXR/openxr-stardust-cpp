@@ -10,14 +10,12 @@
 #include "scenegraph.hpp"
 
 namespace StardustXR {
-
 namespace OpenXR {
 
-XrResult xrEnumerateInstanceExtensionProperties(
-	const char*                                 layerName,
-	uint32_t                                    propertyCapacityInput,
-	uint32_t*                                   propertyCountOutput,
-	XrExtensionProperties*                      properties);
+extern "C" {
+	XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoidFunction *function);
+	XrResult xrEnumerateInstanceExtensionProperties(const char* layerName, uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrExtensionProperties* properties);
+}
 
 class Instance {
 public:

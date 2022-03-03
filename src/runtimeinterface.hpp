@@ -2,11 +2,7 @@
 
 #include "include/openxr/openxr.h"
 
-
-namespace StardustXR {
-namespace OpenXR {
-
-XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoidFunction *function);
-
-}
+extern "C" {
+	#include "../include/openxr/loader_interfaces.h"
+	XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo, XrNegotiateRuntimeRequest *runtimeRequest);
 }

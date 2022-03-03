@@ -1,0 +1,4 @@
+OPENXR {
+	global: *xrNegotiateLoaderRuntimeInterface*;
+	local: *;
+};
