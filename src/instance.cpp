@@ -1,6 +1,8 @@
 #include "instance.hpp"
 #include "functions.hpp"
+#include "extensions.hpp"
 #include "include/openxr/openxr.h"
+#include "include/openxr/openxr_reflection.h"
 #include "src/scenegraph.hpp"
 
 #include <cstddef>
@@ -30,38 +32,43 @@ XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoid
 XrResult xrEnumerateInstanceExtensionProperties(const char* layerName, uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrExtensionProperties* properties) {
 	if(propertyCountOutput == NULL)
 		return XR_ERROR_VALIDATION_FAILURE;
-	*propertyCountOutput = 0;
+	if(properties == nullptr)
+		*propertyCountOutput = extensions.size();
 	if(propertyCapacityInput == 0)
 		return XR_SUCCESS;
-	
-	printf("Connecting to Stardust for getting extension properties\n");
-	int fd;
-	if (!(fd = StardustXR::ConnectClient())) {
-		perror("Client failed to connect to server");
-		return XR_ERROR_RUNTIME_FAILURE;
-	}
-
-	Scenegraph scenegraph;
-	Messenger messenger(0, &scenegraph);
-	messenger.startHandler();
-
-	//This is a stub
-
 	if(propertyCapacityInput < *propertyCountOutput)
 		return XR_ERROR_SIZE_INSUFFICIENT;
-
-	messenger.sendSignal("/", "disconnect", FLEX_ARG(FLEX_NULL));
+	if(properties != nullptr) {
+		uint32_t i = 0;
+		for(auto extension : extensions) {
+			properties[i] = XrExtensionProperties {
+				.type = XR_TYPE_EXTENSION_PROPERTIES,
+				.next = NULL,
+				.extensionVersion = extension.second,
+			};
+			extension.first.copy(properties[i].extensionName, XR_MAX_EXTENSION_NAME_SIZE);
+			i++;
+		}
+	}
+	//This is a stub
 
 	return XR_SUCCESS;
 }
 
-XrResult Instance::xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* instance) {
+XrResult xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* instance) {
 	if(createInfo->type != XR_TYPE_INSTANCE_CREATE_INFO) return XR_ERROR_VALIDATION_FAILURE;
 	
 	// TODO: check extensions
 
 	Instance *stardustInstance = new Instance(*createInfo);
 	*instance = (XrInstance)(uint64_t)(uintptr_t)(stardustInstance);
+	return XR_SUCCESS;
+}
+XrResult xrDestroyInstance(XrInstance xrInstance) {
+	Instance *instance = reinterpret_cast<Instance *>(xrInstance);
+	if(instance == nullptr)
+		return XR_ERROR_HANDLE_INVALID;
+	delete instance;
 	return XR_SUCCESS;
 }
 
@@ -84,6 +91,10 @@ Instance::Instance(XrInstanceCreateInfo info) {
 	// 	)
 	// );
 	// scenegraph.addMethod("logicStep", &FlexDummy);
+}
+
+Instance::~Instance() {
+	messenger->sendSignal("/", "disconnect", FLEX_ARG(FLEX_NULL));
 }
 
 }

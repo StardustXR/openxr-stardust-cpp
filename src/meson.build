@@ -1,5 +1,5 @@
 files += files(
-	'functions.cpp',
+	# 'functions.cpp',
 	'instance.cpp',
 	'runtimeinterface.cpp',
 	'scenegraph.cpp',

@@ -12,17 +12,18 @@
 namespace StardustXR {
 namespace OpenXR {
 
-extern "C" {
-	XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoidFunction *function);
-	XrResult xrEnumerateInstanceExtensionProperties(const char* layerName, uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrExtensionProperties* properties);
-}
+XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoidFunction *function);
+XrResult xrEnumerateInstanceExtensionProperties(const char* layerName, uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrExtensionProperties* properties);
+
+XrResult xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* instance);
+XrResult xrDestroyInstance(XrInstance instance);
 
 class Instance {
 public:
-	static XrResult xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* instance);
+	Instance(XrInstanceCreateInfo info);
+	~Instance();
 	XrResult result = XR_SUCCESS;
 private:
-	Instance(XrInstanceCreateInfo info);
 	std::unique_ptr<Messenger> messenger;
 	Scenegraph scenegraph;
 };
