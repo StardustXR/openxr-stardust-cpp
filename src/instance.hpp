@@ -3,7 +3,8 @@
 #include "../include/openxr/loader_interfaces.h"
 #include "include/openxr/openxr.h"
 #include <memory>
-#include <openxr/openxr.h>
+
+#include "extension.hpp"
 
 #include <stardustxr/client/connector.hpp>
 #include <stardustxr/common/messenger.hpp>
@@ -16,14 +17,18 @@ XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoid
 XrResult xrEnumerateInstanceExtensionProperties(const char* layerName, uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrExtensionProperties* properties);
 
 XrResult xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* instance);
+XrResult xrGetInstanceProperties(XrInstance instance, XrInstanceProperties *instanceProperties);
 XrResult xrDestroyInstance(XrInstance instance);
 
 class Instance {
 public:
 	Instance(XrInstanceCreateInfo info);
+	XrResult createResult = XR_SUCCESS;
 	~Instance();
-	XrResult result = XR_SUCCESS;
+
+	std::unordered_map<std::string, PFN_xrVoidFunction> functions;
 private:
+	std::vector<std::unique_ptr<Extension>> extensions;
 	std::unique_ptr<Messenger> messenger;
 	Scenegraph scenegraph;
 };

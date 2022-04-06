@@ -8,6 +8,7 @@ openxr = dependency('openxr')
 stardust = dependency('stardustxr')
 
 files = []
+compile_args = []
 
 subdir('src')
 
@@ -19,5 +20,7 @@ lib = shared_library(
 	# gnu_symbol_visibility : 'hidden',
 	dependencies: [openxr, stardust],
 	link_args: version_script_flag,
+	c_args: compile_args,
+	cpp_args: compile_args,
 	install: true
 )

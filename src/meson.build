@@ -1,6 +1,11 @@
 files += files(
-	# 'functions.cpp',
+	'extension.cpp',
 	'instance.cpp',
 	'runtimeinterface.cpp',
 	'scenegraph.cpp',
+	'stringify.cpp',
+	'system.cpp',
 )
+
+subdir('extensions')
+subdir('systems')

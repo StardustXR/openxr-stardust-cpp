@@ -1,69 +1,95 @@
 #include "instance.hpp"
 #include "functions.hpp"
-#include "extensions.hpp"
+#include "extension.hpp"
 #include "include/openxr/openxr.h"
 #include "include/openxr/openxr_reflection.h"
+#include "src/extension.hpp"
 #include "src/scenegraph.hpp"
 
 #include <cstddef>
 #include <cstdio>
+#include <cstring>
 #include <stardustxr/common/flex.hpp>
 #include <stdint.h>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 
 namespace StardustXR {
 namespace OpenXR {
 
+// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrGetInstanceProcAddr
 XrResult xrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoidFunction *function) {
 	*function = nullptr;
 
 	const std::string nameStr = std::string(name);
 	printf("Trying to get address \"%s\" from instance %p\n", name, instance);
 	fflush(stdout);
-	auto mapFunction = (instance == XR_NULL_HANDLE ? xrFunctionsNoInstance : xrFunctions).find(nameStr);
-	if(mapFunction != xrFunctions.end()) {
-		*function = mapFunction->second;
+
+	std::unordered_map<std::string, PFN_xrVoidFunction> *functions;
+	if(instance != XR_NULL_HANDLE) {
+		Instance *instancePtr = reinterpret_cast<Instance *>(instance);
+		functions = &instancePtr->functions;
+	} else
+		functions = &xrFunctionsNoInstance;
+
+	auto mapIt = functions->find(nameStr);
+	if(mapIt != functions->end()) {
+		*function = mapIt->second;
 		return XR_SUCCESS;
 	}
 	return XR_ERROR_FUNCTION_UNSUPPORTED;
 }
 
+// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrEnumerateInstanceExtensionProperties
 XrResult xrEnumerateInstanceExtensionProperties(const char* layerName, uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrExtensionProperties* properties) {
 	if(propertyCountOutput == NULL)
 		return XR_ERROR_VALIDATION_FAILURE;
+	// if(propertyCapacityInput == 0)
+		// return XR_SUCCESS;
+
+	std::vector<Extension> extensions;
+	extensions.insert(extensions.end(), Extension::clientExtensions.begin(), Extension::clientExtensions.end());
+	// Connect to Stardust server to get valid extensions
+	
 	if(properties == nullptr)
 		*propertyCountOutput = extensions.size();
-	if(propertyCapacityInput == 0)
-		return XR_SUCCESS;
 	if(propertyCapacityInput < *propertyCountOutput)
 		return XR_ERROR_SIZE_INSUFFICIENT;
 	if(properties != nullptr) {
 		uint32_t i = 0;
-		for(auto extension : extensions) {
+		for(Extension &extension : extensions) {
 			properties[i] = XrExtensionProperties {
 				.type = XR_TYPE_EXTENSION_PROPERTIES,
 				.next = NULL,
-				.extensionVersion = extension.second,
+				.extensionVersion = extension.version,
 			};
-			extension.first.copy(properties[i].extensionName, XR_MAX_EXTENSION_NAME_SIZE);
+			extension.name.copy(properties[i].extensionName, XR_MAX_EXTENSION_NAME_SIZE);
 			i++;
 		}
 	}
-	//This is a stub
-
 	return XR_SUCCESS;
 }
 
+// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrCreateInstance
 XrResult xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* instance) {
 	if(createInfo->type != XR_TYPE_INSTANCE_CREATE_INFO) return XR_ERROR_VALIDATION_FAILURE;
-	
-	// TODO: check extensions
 
+	XrResult createResult;
 	Instance *stardustInstance = new Instance(*createInfo);
+	createResult = stardustInstance->createResult;
 	*instance = (XrInstance)(uint64_t)(uintptr_t)(stardustInstance);
+	return createResult;
+}
+// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrGetInstanceProperties
+XrResult xrGetInstanceProperties(XrInstance instance, XrInstanceProperties *instanceProperties) {
+	instanceProperties->type = XR_TYPE_INSTANCE_PROPERTIES;
+	instanceProperties->runtimeVersion = 1;
+	strncpy(instanceProperties->runtimeName, "Stardust XR", XR_MAX_RUNTIME_NAME_SIZE);
 	return XR_SUCCESS;
 }
+// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrDestroyInstance
 XrResult xrDestroyInstance(XrInstance xrInstance) {
 	Instance *instance = reinterpret_cast<Instance *>(xrInstance);
 	if(instance == nullptr)
@@ -74,23 +100,31 @@ XrResult xrDestroyInstance(XrInstance xrInstance) {
 
 Instance::Instance(XrInstanceCreateInfo info) {
 	printf("Client starting...\n");
-	int fd;
-	if (!(fd = StardustXR::ConnectClient())) {
+	int fd = StardustXR::ConnectClient();
+	if (!fd) {
 		perror("Client failed to connect to server");
+		createResult = XR_ERROR_INITIALIZATION_FAILED;
+	} else {
+		messenger.reset(new Messenger(fd, &scenegraph));
+		messenger->startHandler();
+
+		// TODO: check extensions
+
+		// messenger->sendSignal(
+		// 	"/",
+		// 	"subscribeLogicStep",
+		// 	FLEX_ARGS(
+		// 		FLEX_STRING(std::string(""))
+		// 		FLEX_STRING(std::string("logicStep"))
+		// 	)
+		// );
+		// scenegraph.addMethod("logicStep", &FlexDummy);
+
+		functions.insert(xrFunctions.begin(), xrFunctions.end());
+		for(Extension &extension : Extension::clientExtensions) {
+			functions.insert(extension.functions.begin(), extension.functions.end());
+		}
 	}
-
-	messenger.reset(new Messenger(fd, &scenegraph));
-	messenger->startHandler();
-
-	// messenger->sendSignal(
-	// 	"/",
-	// 	"subscribeLogicStep",
-	// 	FLEX_ARGS(
-	// 		FLEX_STRING(std::string(""))
-	// 		FLEX_STRING(std::string("logicStep"))
-	// 	)
-	// );
-	// scenegraph.addMethod("logicStep", &FlexDummy);
 }
 
 Instance::~Instance() {
