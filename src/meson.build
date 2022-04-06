@@ -8,4 +8,3 @@ files += files(
 )
 
 subdir('extensions')
-subdir('systems')

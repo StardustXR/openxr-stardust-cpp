@@ -5,7 +5,7 @@
 namespace StardustXR {
 namespace OpenXR {
 
-XrResult xrEnumerateApiLayerProperties(uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrApiLayerProperties* properties) {
+static XrResult xrEnumerateApiLayerProperties(uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrApiLayerProperties* properties) {
 	if (propertyCountOutput != nullptr)
 		*propertyCountOutput = 1;
 	
