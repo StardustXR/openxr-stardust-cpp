@@ -82,11 +82,11 @@ XrResult xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* in
 	Instance *stardustInstance = new Instance(*createInfo);
 	createResult = stardustInstance->createResult;
 	if(createResult != XR_SUCCESS) {
-		delete instance;
+		delete stardustInstance;
 		return createResult;
 	}
 
-	*instance = (XrInstance)(uint64_t)(uintptr_t)(stardustInstance);
+	*instance = (XrInstance)(uintptr_t)(stardustInstance);
 	return XR_SUCCESS;
 }
 // https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrGetInstanceProperties

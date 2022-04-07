@@ -40,7 +40,7 @@ XrResult xrEnumerateViewConfigurationViews(XrInstance instance, XrSystemId syste
 
 	Instance *instancePtr = reinterpret_cast<Instance *>(instance);
 	const std::vector<uint8_t> serverViewConfigsData = instancePtr->getMessenger()->executeRemoteMethodSync(
-		"/openxr/instance/system",
+		"/openxr/system",
 		"getViewConfigurations",
 		FLEX_ARG(FLEX_NULL)
 	);

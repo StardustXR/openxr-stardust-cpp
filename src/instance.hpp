@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "extension.hpp"
+#include "session.hpp"
 
 #include <stardustxr/client/connector.hpp>
 #include <stardustxr/common/messenger.hpp>

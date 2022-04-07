@@ -3,6 +3,7 @@ files += files(
 	'instance.cpp',
 	'runtimeinterface.cpp',
 	'scenegraph.cpp',
+	'session.cpp',
 	'stringify.cpp',
 	'system.cpp',
 )

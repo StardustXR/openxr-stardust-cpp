@@ -41,6 +41,8 @@ static std::unordered_map<std::string, PFN_xrVoidFunction> xrFunctions = {
 	XR_FUNCTION(xrGetSystemProperties)
 
 	XR_FUNCTION(xrEnumerateViewConfigurationViews)
+
+	XR_FUNCTION(xrCreateSession)
 };
 
 }
