@@ -2,9 +2,12 @@
 #include "instance.hpp"
 
 #include "include/openxr/openxr.h"
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <flatbuffers/flexbuffers.h>
 #include <map>
+#include <stardustxr/common/flex.hpp>
 
 namespace StardustXR {
 namespace OpenXR {
@@ -27,6 +30,46 @@ XrResult xrGetSystemProperties(XrInstance instance, XrSystemId systemId, XrSyste
 	properties->graphicsProperties.maxSwapchainImageHeight = 1024 * 16;
 	properties->trackingProperties.positionTracking = true;
 	properties->trackingProperties.orientationTracking = true;
+
+	return XR_SUCCESS;
+}
+
+XrResult xrEnumerateViewConfigurationViews(XrInstance instance, XrSystemId systemId, XrViewConfigurationType viewConfigurationType, uint32_t viewCapacityInput, uint32_t *viewCountOutput, XrViewConfigurationView *views) {
+	if(!viewCountOutput) return XR_ERROR_VALIDATION_FAILURE;
+
+
+	Instance *instancePtr = reinterpret_cast<Instance *>(instance);
+	const std::vector<uint8_t> serverViewConfigsData = instancePtr->getMessenger()->executeRemoteMethodSync(
+		"/openxr/instance/system",
+		"getViewConfigurations",
+		FLEX_ARG(FLEX_NULL)
+	);
+	const flexbuffers::Vector serverViewConfigs = flexbuffers::GetRoot(serverViewConfigsData).AsVector();
+	if(serverViewConfigs.IsTheEmptyVector())
+		return XR_ERROR_RUNTIME_FAILURE;
+
+	if(viewConfigurationType != serverViewConfigs.size()) return XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED;
+
+	if(viewCapacityInput == 0) {
+		*viewCountOutput = serverViewConfigs.size();
+		return XR_SUCCESS;
+	}
+
+	if(viewCapacityInput < serverViewConfigs.size()) return XR_ERROR_SIZE_INSUFFICIENT;
+
+	for(uint i=0; i<2; ++i) {
+		views[i].type = XR_TYPE_VIEW_CONFIGURATION_VIEW;
+		views[i].next = nullptr;
+
+		flexbuffers::Vector serverViewConfig = serverViewConfigs[i].AsVector();
+		views[i].recommendedImageRectWidth  = serverViewConfig[0].AsUInt32();
+		views[i].maxImageRectWidth          = serverViewConfig[1].AsUInt32();
+		views[i].recommendedImageRectHeight = serverViewConfig[2].AsUInt32();
+		views[i].maxImageRectHeight         = serverViewConfig[3].AsUInt32();
+
+		views[i].maxSwapchainSampleCount = 1;
+		views[i].recommendedSwapchainSampleCount = 1;
+	}
 
 	return XR_SUCCESS;
 }

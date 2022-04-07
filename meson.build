@@ -6,6 +6,7 @@ project('openxr-stardust', 'cpp', default_options: ['cpp_std=c++17'], version:'0
 
 openxr = dependency('openxr')
 stardust = dependency('stardustxr')
+flatbuffers = dependency('flatbuffers')
 
 files = []
 compile_args = []
@@ -18,7 +19,7 @@ lib = shared_library(
 	'openxr_stardust',
 	files,
 	# gnu_symbol_visibility : 'hidden',
-	dependencies: [openxr, stardust],
+	dependencies: [openxr, stardust, flatbuffers],
 	link_args: version_script_flag,
 	c_args: compile_args,
 	cpp_args: compile_args,

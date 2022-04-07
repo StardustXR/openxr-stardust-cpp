@@ -28,18 +28,19 @@ static std::unordered_map<std::string, PFN_xrVoidFunction> xrFunctionsNoInstance
 
 static std::unordered_map<std::string, PFN_xrVoidFunction> xrFunctions = {
 	XR_FUNCTION(xrEnumerateApiLayerProperties)
-
 	XR_FUNCTION(xrEnumerateInstanceExtensionProperties)
 	XR_FUNCTION(xrGetInstanceProcAddr)
 	XR_FUNCTION(xrCreateInstance)
 	XR_FUNCTION(xrGetInstanceProperties)
 	XR_FUNCTION(xrDestroyInstance)
-	XR_FUNCTION(xrGetSystem)
-	XR_FUNCTION(xrGetSystemProperties)
-
 
 	XR_FUNCTION(xrResultToString)
 	XR_FUNCTION(xrStructureTypeToString)
+
+	XR_FUNCTION(xrGetSystem)
+	XR_FUNCTION(xrGetSystemProperties)
+
+	XR_FUNCTION(xrEnumerateViewConfigurationViews)
 };
 
 }

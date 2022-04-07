@@ -9,7 +9,9 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <flatbuffers/flexbuffers.h>
 #include <stardustxr/common/flex.hpp>
+#include <stardustxr/common/messenger.hpp>
 #include <stdint.h>
 #include <string>
 #include <unordered_map>
@@ -79,8 +81,13 @@ XrResult xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* in
 	XrResult createResult;
 	Instance *stardustInstance = new Instance(*createInfo);
 	createResult = stardustInstance->createResult;
+	if(createResult != XR_SUCCESS) {
+		delete instance;
+		return createResult;
+	}
+
 	*instance = (XrInstance)(uint64_t)(uintptr_t)(stardustInstance);
-	return createResult;
+	return XR_SUCCESS;
 }
 // https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrGetInstanceProperties
 XrResult xrGetInstanceProperties(XrInstance instance, XrInstanceProperties *instanceProperties) {
@@ -110,25 +117,37 @@ Instance::Instance(XrInstanceCreateInfo info) {
 
 		// TODO: check extensions
 
-		// messenger->sendSignal(
-		// 	"/",
-		// 	"subscribeLogicStep",
-		// 	FLEX_ARGS(
-		// 		FLEX_STRING(std::string(""))
-		// 		FLEX_STRING(std::string("logicStep"))
-		// 	)
-		// );
-		// scenegraph.addMethod("logicStep", &FlexDummy);
+		{
+			std::vector<uint8_t> serverStatus = messenger->executeRemoteMethodSync(
+				"/openxr",
+				"createInstance",
+				FLEX_ARGS(
+					FLEX_UINT(info.createFlags)
+					FLEX_STRING(info.applicationInfo.applicationName)
+					FLEX_UINT(info.applicationInfo.applicationVersion)
+					FLEX_STRING(info.applicationInfo.engineName)
+					FLEX_UINT(info.applicationInfo.engineVersion)
+					FLEX_UINT(info.applicationInfo.apiVersion)
+				)
+			);
+			createResult = (XrResult) flexbuffers::GetRoot(serverStatus).AsInt32();
+		}
 
-		functions.insert(xrFunctions.begin(), xrFunctions.end());
-		for(Extension &extension : Extension::clientExtensions) {
-			functions.insert(extension.functions.begin(), extension.functions.end());
+		if(createResult == XR_SUCCESS) {
+			functions.insert(xrFunctions.begin(), xrFunctions.end());
+			for(Extension &extension : Extension::clientExtensions) {
+				functions.insert(extension.functions.begin(), extension.functions.end());
+			}
 		}
 	}
 }
 
 Instance::~Instance() {
 	messenger->sendSignal("/", "disconnect", FLEX_ARG(FLEX_NULL));
+}
+
+Messenger *Instance::getMessenger() {
+	return messenger.get();
 }
 
 }

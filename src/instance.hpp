@@ -26,6 +26,8 @@ public:
 	XrResult createResult = XR_SUCCESS;
 	~Instance();
 
+	Messenger *getMessenger();
+
 	std::unordered_map<std::string, PFN_xrVoidFunction> functions;
 private:
 	std::vector<std::unique_ptr<Extension>> extensions;
