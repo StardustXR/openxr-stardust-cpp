@@ -4,6 +4,7 @@ files += files(
 	'runtimeinterface.cpp',
 	'scenegraph.cpp',
 	'session.cpp',
+	'space.cpp',
 	'stringify.cpp',
 	'system.cpp',
 )

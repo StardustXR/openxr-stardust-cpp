@@ -134,8 +134,12 @@ Instance::Instance(XrInstanceCreateInfo info) {
 		}
 
 		if(createResult == XR_SUCCESS) {
+			std::vector<std::string> enabledExtensionNames(info.enabledExtensionNames, info.enabledExtensionNames + info.enabledExtensionCount);
+
 			functions.insert(xrFunctions.begin(), xrFunctions.end());
 			for(Extension &extension : Extension::clientExtensions) {
+				if(std::find(enabledExtensionNames.begin(), enabledExtensionNames.end(), extension.name) != enabledExtensionNames.end())
+					extensions.emplace(extension.name, &extension);
 				functions.insert(extension.functions.begin(), extension.functions.end());
 			}
 		}
@@ -148,6 +152,10 @@ Instance::~Instance() {
 
 Messenger *Instance::getMessenger() {
 	return messenger.get();
+}
+
+bool Instance::hasExtension(std::string extensionName) {
+	return extensions.count(extensionName) > 0;
 }
 
 }

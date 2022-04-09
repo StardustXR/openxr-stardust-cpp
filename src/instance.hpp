@@ -29,9 +29,11 @@ public:
 
 	Messenger *getMessenger();
 
+	bool hasExtension(std::string extensionName);
+
 	std::unordered_map<std::string, PFN_xrVoidFunction> functions;
+	std::unordered_map<std::string, std::unique_ptr<Extension>> extensions;
 private:
-	std::vector<std::unique_ptr<Extension>> extensions;
 	std::unique_ptr<Messenger> messenger;
 	Scenegraph scenegraph;
 };

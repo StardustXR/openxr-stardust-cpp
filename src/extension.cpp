@@ -1,6 +1,5 @@
 #include "extension.hpp"
-
-#include "openxr/openxr_platform.h"
+#include "extensions/platformincludes.hpp"
 
 namespace StardustXR {
 namespace OpenXR {

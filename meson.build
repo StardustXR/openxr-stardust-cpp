@@ -9,6 +9,7 @@ stardust = dependency('stardustxr')
 flatbuffers = dependency('flatbuffers')
 
 files = []
+dependencies = [openxr, stardust, flatbuffers]
 compile_args = []
 
 subdir('src')
@@ -18,8 +19,7 @@ version_script_flag = '-Wl,--version-script,@0@/@1@'.format(meson.current_source
 lib = shared_library(
 	'openxr_stardust',
 	files,
-	# gnu_symbol_visibility : 'hidden',
-	dependencies: [openxr, stardust, flatbuffers],
+	dependencies: dependencies,
 	link_args: version_script_flag,
 	c_args: compile_args,
 	cpp_args: compile_args,

@@ -7,7 +7,9 @@
 #include "apilayers.hpp"
 #include "runtimeinterface.hpp"
 #include "instance.hpp"
+#include "session.hpp"
 #include "stringify.hpp"
+#include "space.hpp"
 #include "system.hpp"
 
 #include <string>
@@ -43,6 +45,10 @@ static std::unordered_map<std::string, PFN_xrVoidFunction> xrFunctions = {
 	XR_FUNCTION(xrEnumerateViewConfigurationViews)
 
 	XR_FUNCTION(xrCreateSession)
+	XR_FUNCTION(xrDestroySession)
+
+	XR_FUNCTION(xrCreateReferenceSpace)
+	XR_FUNCTION(xrDestroySpace)
 };
 
 }
